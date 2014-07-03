@@ -9,6 +9,7 @@ import uuid
 from TwitterAPI import TwitterAPI
 from datetime import timedelta
 from redis import Redis
+from local_config import *
 
 import random
 import os
@@ -21,16 +22,16 @@ app = Flask(__name__)
 img_session = requests.Session()
 url_prefix = "https://s3.amazonaws.com/com.exaforge.vipr-image-store/"
 r_tweet_map = Redis(host='pub-redis-12630.us-east-1-1.1.ec2.garantiadata.com',port=12630,db=0,password='P@ssword1!')
-pool = tinys3.Pool('AKIAIFGKSGBMDPVKNAMQ','ZLJOBDWMiq8fUiFzKNzXVRUXyUoBbITK6yiIot2f',tls=True, default_bucket='com.exaforge.vipr-image-store', )
+pool = tinys3.Pool(akia,secret,tls=True, default_bucket='com.exaforge.vipr-image-store', )
 
 
 
 def watch_tweet_stream():
     api = TwitterAPI(
-        'dGlK6EPjLDOCSaxuXgQFqNmDF',
-        'D5AJSZp8ZTqEYYvVTeCyHyYwJ7UbGQVNLGx0yXVM6WUrPOxh33',
-        '40975804-LD0OkapxU5CnFG4Ne3ziil9TrmIYok0jtpPpMO5N6',
-        'PC4hNOQwpGN6HjuYzdia40BdzBWLliXixT0UdEFmDBK2g'
+        twitter1,
+        twitter2,
+        twitter3,
+        twitter4
     )
     r = api.request('statuses/filter', {'track':'#photo'})
     for item in r.get_iterator():
