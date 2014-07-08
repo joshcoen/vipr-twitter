@@ -9,6 +9,57 @@
   <link href="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet">
   <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
   <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+<!-- Include KillerCarousel CSS -->
+<link href="killercarousel.css" type="text/css" rel="stylesheet" />
+
+<!-- Include KillerCarousel JavaScript -->
+<script type="text/javascript" src="killercarousel.js"></script>
+
+        <!-- Styles for the Carousel -->
+        <style type = "text/css">
+
+            
+            /* CSS for item wrapper */
+            .kc-item {
+                position:absolute;              
+                width:188px;
+                height:250px;
+            }
+            
+            /* CSS for images inside item wrapper */
+            .kc-item img {
+                position:absolute;
+                pointer-events: none;   /* Make images non-selectable. */
+                width:100%;             /* Make images expand to wrapper size (used in 2d modes). */
+            }
+         
+        </style>
+
+
+        <script type = "text/javascript">
+            $(function() {
+                $('.kc-wrap').KillerCarousel({
+                    // Width of carousel.
+                    width: 800, 
+                    // Item spacing in 3d (CSS3 3d) mode.
+                    spacing3d: 200,    
+                    // Item spacing in 2d (no CSS3 3d) mode. 
+                    spacing2d:120,
+                    // Path to images for shadows etc.
+                    //imagePath: "/sites/starplugins/js/killercarousel/",
+                    showShadow: false, 
+                    showReflection: false,
+                    // Looping mode.
+                    infiniteLoop: true,
+                    // Scale at 75% of parent element.
+                    autoScale: 100  
+                    
+                });
+            });
+    </script>
+
+
 </head>
 
 <body>
@@ -23,7 +74,7 @@
         </div>
       </div>
     </div>
-    <div class="row">
+<!--    <div class="row">
       <div class="col-md-12 text-center">
         <div class="btn-group">
 
@@ -43,9 +94,37 @@
         <hr>
       </div>
     </div>
+-->
+
+<!-- Main wrapping parent. -->
+<div class = "kc-wrap">
+
+    <!-- Carousel items follow. -->
+
+    {% for url in urls %}
+      <div class="kc-item">
+        <img src='{{ url[1] }}'>
+      </div>
+    {% endfor %}
+<!--
+    <div class="kc-item">
+        <img src="http://session86.app.rtfm.nu/images/vmworld_2014.png" alt = "" >
+    </div>
+    <div class="kc-item">
+        <img src="http://session86.app.rtfm.nu/images/emcworld.jpeg" alt = "" >
+    </div> 
+    <div class="kc-item">
+        <img src="http://session86.app.rtfm.nu/images/openstack-summit-logo.jpg" alt = "" >
+    </div>
+    <div class="kc-item">
+        <img src="http://session86.app.rtfm.nu/images/puppetconf.png" alt = "" >
+    </div>
+-->
+</div>
+
     <div class="row">
       <div class="col-md-12">
-        <p class="text-center">by matt cowger (@mcowger) and jonas rosland (@virtual_swede)</p>
+        <p class="text-center">by matt cowger (<a href="http://twitter.com/mcowger">@mcowger</a>) and jonas rosland (<a href="http://twitter.com/virtualswede">@virtualswede)</a></p>
       </div>
     </div>
   </div>
