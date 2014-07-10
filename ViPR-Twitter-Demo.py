@@ -33,16 +33,30 @@ def watch_tweet_stream():
         twitter3,
         twitter4
     )
-    r = api.request('statuses/filter', {'track':'#photo'})
+    r = api.request('statuses/filter', {'track':'#vmworld,#emc,#sanfrancisco,#vmware'})
     for item in r.get_iterator():
         if 'entities' in item and 'media' in item['entities']:
-            for media_object in item['entities']['media']:
-                if media_object['type'] == 'photo':
-                    logging.info("Dispatching thread to capture for: " + media_object['media_url'])
-                    t = Thread(target=capture_photo_to_s3,args=(media_object['media_url'],))
-                    t.start()
+            for hashtag in item['entities']['hashtags']:
+                for media_object in item['entities']['media']:
+                    if media_object['type'] == 'photo':
+                        if hashtag['text'].lower() == "emc":  
+                            logging.info("Dispatching thread to capture for: " + media_object['media_url'] + " with hashtag: " + hashtag['text'].lower())
+                            t = Thread(target=capture_photo_to_s3,args=(media_object['media_url'], hashtag['text'].lower()))
+                            t.start()
+                        if hashtag['text'].lower() == "vmworld":  
+                            logging.info("Dispatching thread to capture for: " + media_object['media_url'] + " with hashtag: " + hashtag['text'].lower())
+                            t = Thread(target=capture_photo_to_s3,args=(media_object['media_url'], hashtag['text'].lower()))
+                            t.start()
+                        if hashtag['text'].lower() == "sanfrancisco":  
+                            logging.info("Dispatching thread to capture for: " + media_object['media_url'] + " with hashtag: " + hashtag['text'].lower())
+                            t = Thread(target=capture_photo_to_s3,args=(media_object['media_url'], hashtag['text'].lower()))
+                            t.start()
+                        if hashtag['text'].lower() == "vmware":  
+                            logging.info("Dispatching thread to capture for: " + media_object['media_url'] + " with hashtag: " + hashtag['text'].lower())
+                            t = Thread(target=capture_photo_to_s3,args=(media_object['media_url'], hashtag['text'].lower()))
+                            t.start()                            
 
-def capture_photo_to_s3(url=None):
+def capture_photo_to_s3(url=None, hashtag=None):
     """
 
     :param url: string
@@ -65,6 +79,14 @@ def capture_photo_to_s3(url=None):
             expires=expiry_time
         )
         r_tweet_map.set(key,url_prefix+key,ex=86400)
+        if hashtag == "emc":
+            r_tweet_map.sadd("emc",url_prefix+key)
+        if hashtag == "sanfrancisco":
+            r_tweet_map.sadd("sanfrancisco",url_prefix+key)
+        if hashtag == "vmworld":
+            r_tweet_map.sadd("vmworld",url_prefix+key)
+        if hashtag == "vmware":
+            r_tweet_map.sadd("vmworld",url_prefix+key)
     else:
         logging.warning("Failed to grab %s" % url)
         return None
@@ -74,12 +96,20 @@ t.start()
 
 @app.route('/')
 def dashboard():
-    to_return = {}
-    all_keys = r_tweet_map.keys()
-    for key in all_keys:
-        to_return[key] = r_tweet_map.get(key)
+    sf_to_return = {}
+    emc_to_return = {}
+    sf_keys = r_tweet_map.smembers('sanfrancisco')
+    emc_keys = r_tweet_map.smembers('emc')
+    #all_keys = r_tweet_map.keys()
+    for key in sf_keys:
+        sf_to_return[key] = r_tweet_map.srandmember('sanfrancisco', number=None)
+    
 
-    return render_template('default.html',urls=random.sample(to_return.items(),min(10,len(all_keys))))
+    for key in emc_keys:
+        emc_to_return[key] = r_tweet_map.srandmember('emc', number=None)
+
+
+    return render_template('default.html',sf_urls=random.sample(sf_to_return.items(),min(10,len(sf_keys))),emc_urls=random.sample(emc_to_return.items(),min(10,len(emc_keys))))
 
 
 if __name__ == '__main__':
