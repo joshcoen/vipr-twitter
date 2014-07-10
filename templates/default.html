@@ -11,21 +11,13 @@
   <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
 
 <!-- Include KillerCarousel CSS -->
-<link href="killercarousel.css" type="text/css" rel="stylesheet" />
+<link href="/static/styles/killercarousel.css" type="text/css" rel="stylesheet" />
 
 <!-- Include KillerCarousel JavaScript -->
-<script type="text/javascript" src="killercarousel.js"></script>
+<script type="text/javascript" src="/static/js/killercarousel.js"></script>
 
         <!-- Styles for the Carousel -->
         <style type = "text/css">
-
-            
-            /* CSS for item wrapper */
-            .kc-item {
-                position:absolute;              
-                width:188px;
-                height:250px;
-            }
             
             /* CSS for images inside item wrapper */
             .kc-item img {
@@ -33,19 +25,27 @@
                 pointer-events: none;   /* Make images non-selectable. */
                 width:100%;             /* Make images expand to wrapper size (used in 2d modes). */
             }
-         
+        .image{position:relative}
+        .png-over{position:absolute; bottom:+50px; left:+400px}
+        body {
+            background-image: url('../static/images/hp-leadspace-redefine-text-lg.png'), url("../static/images/hp-leadspace-redefine-lg.jpg");
+            background-repeat:no-repeat;
+            background-position: 50% 50%, 50% 50%;
+            background-color: black;
+        }
+
         </style>
 
 
         <script type = "text/javascript">
             $(function() {
-                $('.kc-wrap').KillerCarousel({
+                $('#kc1').KillerCarousel({
                     // Width of carousel.
-                    width: 800, 
+                    width: 800,
                     // Item spacing in 3d (CSS3 3d) mode.
-                    spacing3d: 200,    
+                    spacing3d: 120,    
                     // Item spacing in 2d (no CSS3 3d) mode. 
-                    spacing2d:120,
+                    spacing2d:100,
                     // Path to images for shadows etc.
                     //imagePath: "/sites/starplugins/js/killercarousel/",
                     showShadow: false, 
@@ -53,27 +53,68 @@
                     // Looping mode.
                     infiniteLoop: true,
                     // Scale at 75% of parent element.
-                    autoScale: 100  
-                    
+                    autoScale: 100,
+                    autoChangeDirection: 1,  
+                    autoChangeDelay: 1400,
+                    renderer3d: null,
+                    renderer2d: 'render2dFlow',
+                    itemAlign: 'middle'
+
                 });
+                $('#kc2').KillerCarousel({
+                    // Width of carousel.
+                    width: 800, 
+                    // Item spacing in 3d (CSS3 3d) mode.
+                    spacing3d: 120,    
+                    // Item spacing in 2d (no CSS3 3d) mode. 
+                    spacing2d:100,
+                    // Path to images for shadows etc.
+                    //imagePath: "/sites/starplugins/js/killercarousel/",
+                    showShadow: false, 
+                    showReflection: false,
+                    // Looping mode.
+                    infiniteLoop: true,
+                    // Scale at 75% of parent element.
+                    autoScale: 100,
+                    autoChangeDirection: -1,  
+                    autoChangeDelay: 1400,
+                    renderer3d: null,
+                    renderer2d: 'render2dFlow',
+                    itemAlign: 'middle'                    
+
+                });
+/*
+                $('#kc3').KillerCarousel({
+                    // Width of carousel.
+                    width: 800, 
+                    // Item spacing in 3d (CSS3 3d) mode.
+                    spacing3d: 120,    
+                    // Item spacing in 2d (no CSS3 3d) mode. 
+                    spacing2d:100,
+                    // Path to images for shadows etc.
+                    //imagePath: "/sites/starplugins/js/killercarousel/",
+                    showShadow: false, 
+                    showReflection: false,
+                    // Looping mode.
+                    infiniteLoop: true,
+                    // Scale at 75% of parent element.
+                    autoScale: 100,
+                    autoChangeDirection: 1,  
+                    autoChangeDelay: 1400,
+                    renderer3d: null,
+                    renderer2d: 'render2dFlow',
+                    itemAlign: 'middle'                    
+
+                });
+*/
             });
-    </script>
+        </script>
 
 
 </head>
 
 <body>
   <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        <div class="page-header">
-          <h1 class="text-center">Twitter!
-            <br>
-            <small>yay!</small>
-          </h1>
-        </div>
-      </div>
-    </div>
 <!--    <div class="row">
       <div class="col-md-12 text-center">
         <div class="btn-group">
@@ -97,31 +138,65 @@
 -->
 
 <!-- Main wrapping parent. -->
-<div class = "kc-wrap">
+
+
+          <h1 class="text-center" style="color:#008AE6">#sanfrancisco
+          </h1>
+
+
+<div id = "kc1" class = "kc-wrap" >
+
+<!-- <div class = "kc-wrap"> -->
 
     <!-- Carousel items follow. -->
 
+    {% for url in sf_urls %}
+      <div class="kc-item">
+          <img src='{{ url[1] }}'>
+      </div>
+    {% endfor %}
+
+</div>
+
+
+
+<div id = "kc2" class = "kc-wrap" >
+
+<!-- <div class = "kc-wrap"> -->
+
+    <!-- Carousel items follow. -->
+
+    {% for url in emc_urls %}
+      <div class="kc-item">
+        <img src='{{ url[1] }}'>
+      </div>
+    {% endfor %}
+
+</div>
+
+          <h1 class="text-center" style="color:#008AE6">#emc
+          </h1>
+<!--
+
+          <h1 class="text-center" style="color:#008AE6">#sanfrancisco
+          </h1>
+
+
+
+<div id = "kc3" class = "kc-wrap" >
+-->
+<!-- <div class = "kc-wrap"> -->
+
+    <!-- Carousel items follow. -->
+<!--
     {% for url in urls %}
       <div class="kc-item">
         <img src='{{ url[1] }}'>
       </div>
     {% endfor %}
-<!--
-    <div class="kc-item">
-        <img src="http://session86.app.rtfm.nu/images/vmworld_2014.png" alt = "" >
-    </div>
-    <div class="kc-item">
-        <img src="http://session86.app.rtfm.nu/images/emcworld.jpeg" alt = "" >
-    </div> 
-    <div class="kc-item">
-        <img src="http://session86.app.rtfm.nu/images/openstack-summit-logo.jpg" alt = "" >
-    </div>
-    <div class="kc-item">
-        <img src="http://session86.app.rtfm.nu/images/puppetconf.png" alt = "" >
-    </div>
--->
-</div>
 
+</div>
+-->
     <div class="row">
       <div class="col-md-12">
         <p class="text-center">by matt cowger (<a href="http://twitter.com/mcowger">@mcowger</a>) and jonas rosland (<a href="http://twitter.com/virtualswede">@virtualswede)</a></p>
