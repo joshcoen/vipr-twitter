@@ -61,7 +61,7 @@ def watch_tweet_stream(hashtag):
             for tag in item['entities']['hashtags']:
                 for media_object in item['entities']['media']:
                     if media_object['type'] == 'photo':
-                            logging.debug("Dispatching thread to capture for: " + media_object['media_url'] + " with hashtag: " + hashtag.lower())
+                            logging.info("Dispatching thread to capture for: " + media_object['media_url'] + " with hashtag: " + hashtag.lower())
                             #capture_photo_to_object(media_object['media_url'], hashtag.lower())
                             t = Thread(target=capture_photo_to_object,args=(media_object['media_url'], hashtag.lower()))
                             t.start()
@@ -78,7 +78,7 @@ def delete_old_keys(hashtag):
             to_delete.append(key)
             list_of_keys.remove(key)
 
-    logging.info("Target keys to delete:" + pformat(to_delete))
+    logging.info("Target keys to delete:" + str(len(to_delete)) + pformat(to_delete))
     results = bucket.delete_keys(to_delete)
     logging.info("Deleted")
     logging.info(results.deleted)
