@@ -115,88 +115,19 @@
 
 <body>
   <div class="container">
-<!--    <div class="row">
-      <div class="col-md-12 text-center">
-        <div class="btn-group">
 
-            {% for url in urls %}
-
-                <img src='{{ url[1] }}'>
-                <br/>
-
-            {% endfor %}
-
-        </div>
-      <p>(available / total)</p>
-      </div>
+    <div id = "kc1" class = "kc-wrap" >
+        {% for url in urls %}
+          <div class="kc-item">
+              <img src='{{ url }}'>
+          </div>
+        {% endfor %}
     </div>
-    <div class="row">
-      <div class="col-md-12">
-        <hr>
-      </div>
-    </div>
--->
-
-<!-- Main wrapping parent. -->
-
-
-          <h1 class="text-center" style="color:#008AE6">#sanfrancisco
-          </h1>
-
-
-<div id = "kc1" class = "kc-wrap" >
-
-<!-- <div class = "kc-wrap"> -->
-
-    <!-- Carousel items follow. -->
-
-    {% for url in sf_urls %}
-      <div class="kc-item">
-          <img src='{{ url[1] }}'>
-      </div>
-    {% endfor %}
-
-</div>
 
 
 
-<div id = "kc2" class = "kc-wrap" >
-
-<!-- <div class = "kc-wrap"> -->
-
-    <!-- Carousel items follow. -->
-
-    {% for url in emc_urls %}
-      <div class="kc-item">
-        <img src='{{ url[1] }}'>
-      </div>
-    {% endfor %}
-
-</div>
-
-          <h1 class="text-center" style="color:#008AE6">#emc
-          </h1>
-<!--
-
-          <h1 class="text-center" style="color:#008AE6">#sanfrancisco
-          </h1>
 
 
-
-<div id = "kc3" class = "kc-wrap" >
--->
-<!-- <div class = "kc-wrap"> -->
-
-    <!-- Carousel items follow. -->
-<!--
-    {% for url in urls %}
-      <div class="kc-item">
-        <img src='{{ url[1] }}'>
-      </div>
-    {% endfor %}
-
-</div>
--->
     <div class="row">
       <div class="col-md-12">
         <p class="text-center">by matt cowger (<a href="http://twitter.com/mcowger">@mcowger</a>) and jonas rosland (<a href="http://twitter.com/virtualswede">@virtualswede)</a></p>

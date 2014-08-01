@@ -3,60 +3,91 @@ from pprint import pprint, pformat
 import logging
 import requests
 from threading import Thread
-from StringIO import StringIO
-import tinys3
+import boto
+from boto.s3.key import Key
+from boto.s3.lifecycle import Lifecycle, Expiration
 import uuid
 from TwitterAPI import TwitterAPI
 from datetime import timedelta
-from redis import Redis
 from local_config import *
-
 import random
-import os
 import time
+import os
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
+scheduler = BackgroundScheduler()
 
-logging.basicConfig(level=logging.DEBUG)
+
+from beaker.cache import CacheManager
+from beaker.util import parse_cache_config_options
+
+cache_opts = {
+    'cache.type': 'memory',
+}
+
+cache = CacheManager(**parse_cache_config_options(cache_opts))
+
+desired_hashtag = '#mtvhottest'
+bucket_name = 'user34-s3'
+min_items = 25
+max_age = 300
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(filename)s: '
+                                '%(levelname)s: '
+                                '%(funcName)s(): '
+                                '%(lineno)d:\t'
+                                '%(message)s')
+
 app = Flask(__name__)
 img_session = requests.Session()
-url_prefix = "https://s3.amazonaws.com/com.exaforge.vipr-image-store/"
-r_tweet_map = Redis(host='pub-redis-12630.us-east-1-1.1.ec2.garantiadata.com',port=12630,db=0,password='P@ssword1!')
-pool = tinys3.Pool(akia,secret,tls=True, default_bucket='com.exaforge.vipr-image-store', )
+
+s3conn = boto.connect_s3(akia,secret,host='object.vipronline.com')
+bucket = s3conn.get_bucket(bucket_name)
 
 
 
-def watch_tweet_stream():
+
+def watch_tweet_stream(hashtag):
     api = TwitterAPI(
         twitter1,
         twitter2,
         twitter3,
         twitter4
     )
-    r = api.request('statuses/filter', {'track':'#vmworld,#emc,#sanfrancisco,#vmware'})
+    r = api.request('statuses/filter', {'track':hashtag})
     for item in r.get_iterator():
         if 'entities' in item and 'media' in item['entities']:
-            for hashtag in item['entities']['hashtags']:
+            for tag in item['entities']['hashtags']:
                 for media_object in item['entities']['media']:
                     if media_object['type'] == 'photo':
-                        if hashtag['text'].lower() == "emc":  
-                            logging.info("Dispatching thread to capture for: " + media_object['media_url'] + " with hashtag: " + hashtag['text'].lower())
-                            t = Thread(target=capture_photo_to_s3,args=(media_object['media_url'], hashtag['text'].lower()))
+                            logging.debug("Dispatching thread to capture for: " + media_object['media_url'] + " with hashtag: " + hashtag.lower())
+                            #capture_photo_to_object(media_object['media_url'], hashtag.lower())
+                            t = Thread(target=capture_photo_to_object,args=(media_object['media_url'], hashtag.lower()))
                             t.start()
-                        if hashtag['text'].lower() == "vmworld":  
-                            logging.info("Dispatching thread to capture for: " + media_object['media_url'] + " with hashtag: " + hashtag['text'].lower())
-                            t = Thread(target=capture_photo_to_s3,args=(media_object['media_url'], hashtag['text'].lower()))
-                            t.start()
-                        if hashtag['text'].lower() == "sanfrancisco":  
-                            logging.info("Dispatching thread to capture for: " + media_object['media_url'] + " with hashtag: " + hashtag['text'].lower())
-                            t = Thread(target=capture_photo_to_s3,args=(media_object['media_url'], hashtag['text'].lower()))
-                            t.start()
-                        if hashtag['text'].lower() == "vmware":  
-                            logging.info("Dispatching thread to capture for: " + media_object['media_url'] + " with hashtag: " + hashtag['text'].lower())
-                            t = Thread(target=capture_photo_to_s3,args=(media_object['media_url'], hashtag['text'].lower()))
-                            t.start()                            
 
-def capture_photo_to_s3(url=None, hashtag=None):
+
+def delete_old_keys(hashtag):
+    list_of_keys = list(bucket.list(hashtag))
+    current_time = time.time()
+    to_delete = []
+    for key in list_of_keys:
+        hashtag,timestamp,guid = key.name.split('/')
+        timestamp = int(timestamp)
+        if len(list_of_keys) > min_items and current_time - max_age < timestamp:
+            to_delete.append(key)
+            list_of_keys.remove(key)
+
+    logging.info("Target keys to delete:" + pformat(to_delete))
+    results = bucket.delete_keys(to_delete)
+    logging.info("Deleted")
+    logging.info(results.deleted)
+    logging.info("Errors")
+    logging.info(results.errors)
+
+
+
+def capture_photo_to_object(url=None, hashtag=None):
     """
 
     :param url: string
@@ -64,55 +95,56 @@ def capture_photo_to_s3(url=None, hashtag=None):
     """
     if url is None: return False
 
-    default_headers ={'x-amz-storage-class': 'REDUCED_REDUNDANCY'}
     expiry_time = timedelta(days=1)
     image_response = img_session.get(url)
     if image_response.status_code == 200:
-        logging.info("Grabbed image from %s" % url)
-        key = str(uuid.uuid4())
-        logging.info("Uploading %s as %s" % (key,image_response.headers.get('content-type')))
-        r = pool.upload(
-            key=key,
-            local_file=StringIO(image_response.content),
-            content_type=image_response.headers.get('content-type'),
-            headers=default_headers,
-            expires=expiry_time
-        )
-        r_tweet_map.set(key,url_prefix+key,ex=86400)
-        if hashtag == "emc":
-            r_tweet_map.sadd("emc",url_prefix+key)
-        if hashtag == "sanfrancisco":
-            r_tweet_map.sadd("sanfrancisco",url_prefix+key)
-        if hashtag == "vmworld":
-            r_tweet_map.sadd("vmworld",url_prefix+key)
-        if hashtag == "vmware":
-            r_tweet_map.sadd("vmworld",url_prefix+key)
+        logging.debug("Grabbed image from %s" % url)
+        guid = str(uuid.uuid4())
+        k = Key(bucket)
+        timestamp = str(int(time.time()))
+        k.key = "/".join([hashtag,timestamp,guid])
+        logging.debug("Uploading %s as %s" % (k.key,image_response.headers.get('content-type')))
+        k.set_contents_from_string(image_response.content)
+        return k.key
     else:
         logging.warning("Failed to grab %s" % url)
         return None
 
-t = Thread(target=watch_tweet_stream, args=())
-t.start()
+@cache.cache('get_keys_for_hashtag', expire=300)
+def get_keys_for_hashtag(hashtag,return_limit=25,):
+    candidates = list(bucket.list(hashtag))
+    max_return = min(len(candidates),return_limit)
+    return random.sample(candidates,max_return)
+
+def get_image_url_from_key(key):
+    return key.generate_url(1200)
+
+watch = Thread(target=watch_tweet_stream, args=(desired_hashtag,))
+watch.daemon = True
+watch.start()
+
 
 @app.route('/')
 def dashboard():
-    sf_to_return = {}
-    emc_to_return = {}
-    sf_keys = r_tweet_map.smembers('sanfrancisco')
-    emc_keys = r_tweet_map.smembers('emc')
-    #all_keys = r_tweet_map.keys()
-    for key in sf_keys:
-        sf_to_return[key] = r_tweet_map.srandmember('sanfrancisco', number=None)
-    
-
-    for key in emc_keys:
-        emc_to_return[key] = r_tweet_map.srandmember('emc', number=None)
+    urls = [get_image_url_from_key(key) for key in get_keys_for_hashtag(desired_hashtag)]
+    pprint(urls)
+    return render_template('default.html',urls=urls)
 
 
-    return render_template('default.html',sf_urls=random.sample(sf_to_return.items(),min(10,len(sf_keys))),emc_urls=random.sample(emc_to_return.items(),min(10,len(emc_keys))))
+
 
 
 if __name__ == '__main__':
+
+    #delete_old_keys()
+    # delete = Thread(target=delete_old_keys)
+    # delete.start()
+    #
+    scheduler.add_job(delete_old_keys,'interval',args=(desired_hashtag,),minutes=1)
+    scheduler.start()
     port = os.getenv('VCAP_APP_PORT', '5000')
-    logging.info("Running on port " + port)
-    app.run(debug=False,port=int(port),host='0.0.0.0')
+    app.run(debug=False,port=int(port),host='0.0.0.0',threaded=True)
+
+    #watch_tweet_stream("picture")
+    # urls = [get_image_url_from_key(key) for key in get_keys_for_hashtag(desired_hashtag)]
+    # pprint(urls)

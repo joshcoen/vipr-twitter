@@ -53,3 +53,13 @@ coverage.xml
 docs/_build/
 
 local_config.py
+
+.idea/*
+
+*.xml
+
+.idea/ViPR-Twitter-Demo.iml
+
+.idea/workspace.xml
+
+.idea/inspectionProfiles/Project_Default.xml
