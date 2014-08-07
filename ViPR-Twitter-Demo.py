@@ -30,7 +30,7 @@ cache = CacheManager(**parse_cache_config_options(cache_opts))
 
 desired_hashtag = '#mtvhottest'
 bucket_name = 'user34-s3'
-min_items = 25
+min_items = 50
 max_age = 300
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(filename)s: '
